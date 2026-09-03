@@ -1,0 +1,9 @@
+.env
+php-local.ini
+writable/
+files/
+u679665170_crm.sql
+*.zip
+plugins/*/files/
+plugins/*/updates/
+plugins/*/ThirdParty/*/vendor/

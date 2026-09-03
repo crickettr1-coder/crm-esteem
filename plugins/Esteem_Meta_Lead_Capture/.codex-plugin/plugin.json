@@ -1,0 +1,16 @@
+{
+  "name": "esteem-meta-lead-capture",
+  "version": "1.0.0",
+  "description": "Secure Facebook and Instagram Lead Ads capture for the Esteem Energy RISE CRM.",
+  "author": {"name": "Esteem Energy"},
+  "license": "Proprietary",
+  "keywords": ["rise-crm", "meta", "facebook", "instagram", "lead-ads"],
+  "interface": {
+    "displayName": "Esteem Meta Lead Capture",
+    "shortDescription": "Receive and safely deduplicate Meta Lead Ads.",
+    "longDescription": "Receives Meta Lead Ads webhooks, retrieves lead details through the Graph API, checks Australian phone and email duplicates, and assigns new leads round-robin.",
+    "developerName": "Esteem Energy",
+    "category": "Productivity",
+    "capabilities": ["Write"]
+  }
+}

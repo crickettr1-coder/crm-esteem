@@ -1,0 +1,12 @@
+<div class="page-title clearfix"><h1 class="pull-left">Meta Lead Ads Capture</h1></div>
+<div class="card"><div class="card-body">
+<?php echo form_open(get_uri('esteem_meta_lead_capture_settings/save'), array('id'=>'meta-settings-form','class'=>'general-form')); ?>
+<div class="form-group"><label>Webhook callback URL</label><input class="form-control" readonly value="<?php echo esc($callback_url); ?>"><small class="text-muted">Copy this exact URL into Meta Developers.</small></div>
+<div class="form-group"><label><input type="checkbox" name="enabled" value="1" <?php echo $settings['enabled']==='1'?'checked':''; ?>> Enable Meta Lead Ads capture</label></div>
+<?php $fields=array('app_id'=>'Meta App ID','page_id'=>'Meta Page ID','api_version'=>'Meta API version','default_status'=>'Default lead status'); foreach($fields as $key=>$label): ?><div class="form-group"><label><?php echo esc($label); ?></label><input class="form-control" name="<?php echo $key; ?>" value="<?php echo esc($settings[$key]); ?>" required></div><?php endforeach; ?>
+<?php foreach(array('app_secret'=>'Meta App Secret','page_access_token'=>'Page Access Token','verify_token'=>'Webhook Verify Token') as $key=>$label): ?><div class="form-group"><label><?php echo esc($label); ?></label><input class="form-control" type="password" name="<?php echo $key; ?>" value="" autocomplete="new-password" placeholder="Saved securely; leave blank to keep current"></div><?php endforeach; ?>
+<div class="form-group"><label>Round-robin sales owners</label><?php foreach($owners as $owner): ?><div><label><input type="checkbox" name="owner_ids[]" value="<?php echo (int)$owner['id']; ?>" <?php echo in_array((string)$owner['id'],explode(',',$settings['owner_ids']),true)?'checked':''; ?>> <?php echo esc($owner['name']); ?></label></div><?php endforeach; ?></div>
+<button type="submit" class="btn btn-primary">Save settings</button> <button type="button" id="test-meta-connection" class="btn btn-default">Test connection</button>
+<?php echo form_close(); ?><div id="meta-test-result" class="mt15"></div>
+</div></div>
+<script>$(function(){ $('#meta-settings-form').appForm({isModal:false,onSuccess:function(){location.reload();}}); $('#test-meta-connection').click(function(){ $.post('<?php echo get_uri('esteem_meta_lead_capture_settings/test_connection'); ?>', $('#meta-settings-form').serialize(), function(r){ $('#meta-test-result').text(r.message || 'Test completed.'); }, 'json'); }); });</script>

@@ -1,0 +1,18 @@
+{
+  "name": "esteem-lead-automation",
+  "version": "1.0.0",
+  "description": "Safe lead follow-up task automation for the Esteem Energy CRM.",
+  "author": {
+    "name": "Esteem Energy"
+  },
+  "license": "Proprietary",
+  "keywords": ["crm", "leads", "follow-up", "automation"],
+  "interface": {
+    "displayName": "Esteem Lead Automation",
+    "shortDescription": "Create one assigned follow-up task for new leads.",
+    "longDescription": "A safe, local CRM automation that creates one follow-up task for each new lead without contacting customers.",
+    "developerName": "Esteem Energy",
+    "category": "Productivity",
+    "capabilities": ["Write"]
+  }
+}
