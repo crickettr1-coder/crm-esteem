@@ -1,0 +1,1 @@
+<div class="page-title"><h1>Template Preview</h1></div><div class="card"><div class="card-body"><h3><?php echo esc($template->subject??''); ?></h3><hr><?php echo $template->html_content??''; ?></div></div>
