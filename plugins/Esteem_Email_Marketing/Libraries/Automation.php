@@ -76,7 +76,7 @@ class Automation
 
     private function enqueue($rule, $lead, $trigger)
     {
-        $template = $this->db->table($this->p . 'email_templates')->where('id', (int)$rule->template_id)->get()->getRow();
+        $template = $this->db->table($this->p . 'email_marketing_templates')->where('id', (int)$rule->template_id)->get()->getRow();
         if (!$template || !$lead->email) return false;
         $now = date('Y-m-d H:i:s');
         $this->db->table($this->p . 'email_campaigns')->insert(['name' => 'Automation: ' . $rule->name, 'subject' => $template->subject, 'html_content' => $template->html_content, 'sender_name' => email_marketing_setting('default_sender_name', 'Esteem Energy'), 'reply_to' => email_marketing_setting('default_reply_to', ''), 'status' => 'sending', 'created_by' => 1, 'created_at' => $now]);

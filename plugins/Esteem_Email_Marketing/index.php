@@ -28,7 +28,7 @@ register_installation_hook('Esteem_Email_Marketing', function () {
 });
 register_uninstallation_hook('Esteem_Email_Marketing', function () {
     $db = db_connect('default'); $p = get_db_prefix();
-    foreach (['email_test_send_log','email_campaign_status_history','email_automation_audit','email_automation_queue','email_automation_rules','email_campaign_recipients','email_campaigns','email_templates','marketing_consent','email_suppressions','email_marketing_settings'] as $table) $db->query("DROP TABLE IF EXISTS `{$p}{$table}`");
+    foreach (['email_test_send_log','email_campaign_status_history','email_automation_audit','email_automation_queue','email_automation_rules','email_campaign_recipients','email_campaigns','email_marketing_templates','marketing_consent','email_suppressions','email_marketing_settings'] as $table) $db->query("DROP TABLE IF EXISTS `{$p}{$table}`");
 });
 
 app_hooks()->add_action('app_hook_after_cron_run', function () {
