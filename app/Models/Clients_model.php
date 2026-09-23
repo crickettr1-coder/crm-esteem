@@ -122,7 +122,10 @@ class Clients_model extends Crud_model {
             "id" => $clients_table . ".id",
             "company_name" => $clients_table . ".company_name",
             "created_date" => $clients_table . ".created_date",
-            "last_viewed_at" => $clients_table . ".last_viewed_at, " . $clients_table . ".created_date",
+            // Keep the most recently opened lead first, while also placing
+            // newly imported leads first until they have been opened.
+            // The direction is appended by the table query.
+            "last_viewed_at" => "COALESCE(" . $clients_table . ".last_viewed_at, " . $clients_table . ".created_date)",
             "primary_contact" => $users_table . ".first_name",
             "status" => "lead_status_title",
             "owner_name" => "owner_details.owner_name",

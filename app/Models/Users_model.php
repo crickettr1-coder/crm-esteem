@@ -512,7 +512,7 @@ class Users_model extends Crud_model {
         }
 
 
-        $sql = "SELECT $users_table.id, CONCAT($users_table.first_name, ' ',$users_table.last_name) AS user_name
+        $sql = "SELECT $users_table.id, CONCAT($users_table.first_name, ' ',$users_table.last_name) AS user_name, $users_table.email AS user_email
         FROM $users_table 
         WHERE $users_table.deleted=0 AND $users_table.user_type='staff' AND $users_table.status='active' $where";
         return $this->db->query($sql);

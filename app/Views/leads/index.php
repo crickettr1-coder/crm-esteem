@@ -43,7 +43,9 @@
     $("#lead-table").appTable({
     source: '<?php echo_uri("leads/list_data/") ?>' + mobileView,
             serverSide: true,
-            smartFilterIdentity: "all_leads_list", //a to z and _ only. should be unique to avoid conflicts
+            // Version the table state so older saved creation-date sorting
+            // cannot override the recently-viewed lead ordering.
+            smartFilterIdentity: "all_leads_list_recent_viewed",
             selectionHandler: {batchUpdateUrl: batchUpdateUrl, batchDeleteUrl: batchDeleteUrl},
             ignoreSavedFilter: ignoreSavedFilter,
             order: [[5, "desc"]],

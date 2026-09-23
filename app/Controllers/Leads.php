@@ -1365,7 +1365,14 @@ class Leads extends Security_Controller {
         $lead_owners = $this->Users_model->get_team_members_id_and_name()->getResult();
         $lead_owners_id_by_name = array();
         foreach ($lead_owners as $owner) {
-            $lead_owners_id_by_name[$owner->user_name] = $owner->id;
+            $owner_name = strtolower(trim(preg_replace('/\s+/', ' ', $owner->user_name)));
+            if ($owner_name) {
+                $lead_owners_id_by_name[$owner_name] = $owner->id;
+            }
+            $owner_email = strtolower(trim($owner->user_email));
+            if ($owner_email) {
+                $lead_owners_id_by_name[$owner_email] = $owner->id;
+            }
         }
 
         $this->lead_statuses_id_by_title = $lead_statuses_id_by_title;
@@ -1468,11 +1475,14 @@ class Leads extends Security_Controller {
                     $this->lead_statuses_id_by_title[$value] = $saved_status_id;
                 }
             } else if ($column_name == "owner") {
-                $owner_id = get_array_value($this->lead_owners_id_by_name, $value);
-                if ($owner_id) {
+                $owner_key = strtolower(trim(preg_replace('/\s+/', ' ', (string) $value)));
+                $owner_id = get_array_value($this->lead_owners_id_by_name, $owner_key);
+                if ($owner_id !== null && $owner_id !== false && $owner_id !== "") {
                     $lead_data["owner_id"] = $owner_id;
                 } else {
-                    $lead_data["owner_id"] = $this->login_user->id;
+                    // Do not silently assign an unknown imported owner to
+                    // the logged-in user. Keep it unassigned for review.
+                    $lead_data["owner_id"] = 0;
                 }
             } else if ($column_name == "source") {
                 //get existing source, if not create new one and add the id
