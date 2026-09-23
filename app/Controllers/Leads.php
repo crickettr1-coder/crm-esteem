@@ -334,6 +334,10 @@ class Leads extends Security_Controller {
             if ($lead_info && $lead_info->is_lead) {
                 $view_data = $this->make_access_permissions_view_data();
 
+                // Keep recently opened leads at the top of the list.
+                $last_viewed_data = array("last_viewed_at" => get_current_utc_time());
+                $this->Clients_model->ci_save($last_viewed_data, $client_id);
+
                 $view_data['lead_info'] = $lead_info;
 
                 $view_data["tab"] = clean_data($tab);
@@ -1307,8 +1311,13 @@ class Leads extends Security_Controller {
     private function _get_headers_for_import() {
         return array(
             array("name" => "name", "required" => true, "required_message" => app_lang("import_error_name_field_required")),
-            array("name" => "type", "required" => true, "required_message" => app_lang("import_error_type_field_required"), "custom_validation" => function ($type, $row_data) {
+            array("name" => "type", "custom_validation" => function ($type, $row_data) {
                 $type = trim(strtolower($type));
+                // Type is optional in imported files. Missing values are
+                // treated as person in _prepare_lead_data().
+                if (!$type) {
+                    return;
+                }
                 if ($type !== "person" && $type !== "organization") {
                     return array("error" => app_lang("import_error_invalid_type"));
                 }
@@ -1317,12 +1326,7 @@ class Leads extends Security_Controller {
             array("name" => "owner"),
             array("name" => "source"),
             array("name" => "contact_first_name"),
-            array("name" => "contact_last_name", "custom_validation" => function ($contact_last_name, $row_data) {
-                //if there is contact first name then the contact last name is required
-                if (get_array_value($row_data, "5") && !$contact_last_name) {
-                    return array("error" => app_lang("import_lead_error_contact_name"));
-                }
-            }),
+            array("name" => "contact_last_name"),
             array("name" => "contact_email"),
             array("name" => "address"),
             array("name" => "city"),
@@ -1396,7 +1400,9 @@ class Leads extends Security_Controller {
         }
 
         //couldn't prepare valid data
-        if (!($lead_data && count($lead_data) > 1)) {
+        //Never create an empty lead when a spreadsheet has an unrecognized
+        //or malformed name column.
+        if (!($lead_data && trim((string) get_array_value($lead_data, "company_name"))) || count($lead_data) <= 1) {
             return false;
         }
 
@@ -1425,7 +1431,9 @@ class Leads extends Security_Controller {
 
     private function _prepare_lead_data($row_data) {
 
-        $lead_data = array("is_lead" => 1);
+        // A missing type is a valid person lead unless explicitly set to
+        // organization in the import file.
+        $lead_data = array("is_lead" => 1, "type" => "person");
         $lead_contact_data = array("user_type" => "lead", "is_primary_contact" => 1);
         $custom_field_values_array = array();
 

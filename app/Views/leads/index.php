@@ -53,7 +53,7 @@
                 {title: "<?php echo app_lang("phone") ?>"},
                 {title: "<?php echo app_lang("owner") ?>", order_by: "owner_name"},
                 {title: "<?php echo app_lang("labels") ?>"},
-                {visible: false, searchable: false, order_by: "created_date"},
+                {visible: false, searchable: false, order_by: "last_viewed_at"},
                 {title: "<?php echo app_lang("created_at") ?>", "iDataSort": 5, order_by: "created_date"},
                 {title: "<?php echo app_lang("status") ?>", order_by: "status"}
                 <?php echo $custom_field_headers; ?>,

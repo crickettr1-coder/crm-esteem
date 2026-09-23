@@ -122,6 +122,7 @@ class Clients_model extends Crud_model {
             "id" => $clients_table . ".id",
             "company_name" => $clients_table . ".company_name",
             "created_date" => $clients_table . ".created_date",
+            "last_viewed_at" => $clients_table . ".last_viewed_at, " . $clients_table . ".created_date",
             "primary_contact" => $users_table . ".first_name",
             "status" => "lead_status_title",
             "owner_name" => "owner_details.owner_name",

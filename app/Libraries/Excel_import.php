@@ -287,22 +287,45 @@ trait Excel_import {
     }
 
     private function _get_headers_with_custom_fields($headers_row) {
-        $headers = $this->default_headers;
-        foreach ($headers_row as $index => $header) {
-            if (!((count($headers) - 1) < $index)) { //skip default headers
+        // Preserve the spreadsheet order. Optional standard columns may be
+        // omitted, so mapping by position would shift all later values.
+        $headers = array();
+        foreach ($headers_row as $header) {
+            $key_value = $this->_normalize_import_header($header);
+            if (in_array($key_value, $this->default_headers, true)) {
+                $headers[] = $key_value;
                 continue;
             }
 
-            //so, it's a custom field
-            //check if there is any custom field existing with the title
-            //add id like cf-3
             $existing_id = $this->_get_existing_custom_field_id($header);
-            if ($existing_id) {
-                array_push($headers, "cf-$existing_id");
-            }
+            $headers[] = $existing_id ? "cf-$existing_id" : "";
         }
 
         return $headers;
+    }
+
+    private function _normalize_import_header($header) {
+        $header = preg_replace('/^\xEF\xBB\xBF/', '', (string) $header);
+        $key_value = strtolower(trim($header));
+        $key_value = preg_replace('/\s+/', '_', $key_value);
+
+        // Accept the common names used by CRM/lead-export spreadsheets.
+        $aliases = array(
+            "company_name" => "name",
+            "lead_name" => "name",
+            "lead_type" => "type",
+            "lead_status" => "status",
+            "lead_owner" => "owner",
+            "lead_source" => "source",
+            "first_name" => "contact_first_name",
+            "last_name" => "contact_last_name",
+            "email" => "contact_email",
+            "contact_firstname" => "contact_first_name",
+            "contact_lastname" => "contact_last_name",
+            "contact_email_address" => "contact_email"
+        );
+
+        return get_array_value($aliases, $key_value) ?: $key_value;
     }
 
     private function _get_existing_custom_field_id($title = "") {
@@ -328,34 +351,45 @@ trait Excel_import {
     }
 
     private function _get_headers_fields_and_errors($headers_row = array()) {
-        //check if all headers are correct and on the right position
+        //Match standard columns by name rather than position. This allows an
+        //optional column to be absent without invalidating later columns.
         $final_headers = array();
+        $found_headers = array();
         foreach ($headers_row as $key => $header) {
             if (!$header) {
+                // Keep the original column index aligned with row values.
+                $final_headers[] = array("key_value" => "", "value" => "", "mapped_name" => "");
                 continue;
             }
 
-            $key_value = str_replace(' ', '_', strtolower(trim($header, " ")));
-            $header_on_this_position = get_array_value($this->default_headers, $key);
-            $header_array = array("key_value" => $header_on_this_position, "value" => $header);
+            $key_value = $this->_normalize_import_header($header);
+            $header_array = array("key_value" => $key_value, "value" => $header, "mapped_name" => $key_value);
 
-            if ($header_on_this_position == $key_value) {
-                //the header looks ok 
-                //The required headers should be on the correct positions and the rest headers will be treated as custom fields
-            } else if (((count($this->default_headers) - 1) < $key) && $key_value) { //custom fields headers
+            if (in_array($key_value, $this->default_headers, true)) {
+                $found_headers[$key_value] = true;
+            } else if ($key_value) { //custom fields headers
                 $existing_id = $this->_get_existing_custom_field_id($header);
                 if ($existing_id) {
                     $header_array["custom_field_id"] = $existing_id;
+                    $header_array["mapped_name"] = "cf-$existing_id";
                 } else {
                     $header_array["has_error"] = true;
                     $header_array["custom_field"] = true;
                 }
-            } else { //invalid header, flag as red
-                $header_array["has_error"] = true;
             }
 
-            if ($key_value) {
-                array_push($final_headers, $header_array);
+            array_push($final_headers, $header_array);
+        }
+
+        //Only explicitly required fields must be present. Other standard
+        //columns are optional and may be omitted from the spreadsheet.
+        foreach ($this->hader_config as $required_header => $config) {
+            if (get_array_value($config, "required") && !isset($found_headers[$required_header])) {
+                array_push($final_headers, array(
+                    "key_value" => $required_header,
+                    "value" => $required_header,
+                    "has_error" => true
+                ));
             }
         }
 
@@ -370,7 +404,8 @@ trait Excel_import {
 
     private function _validate_row_data_and_get_error_message($column_index, $value, $row_data, $headers = array()) {
 
-        $field_name = get_array_value($this->default_headers, $column_index);
+        $header_info = get_array_value($headers, $column_index);
+        $field_name = get_array_value($header_info, "mapped_name");
 
         $field_config = $this->_get_header_config($field_name);
 
@@ -389,8 +424,7 @@ trait Excel_import {
 
         //there has no date field on default import fields
         //check on custom fields
-        if (((count($this->default_headers) - 1) < $column_index) && $value) {
-            $header_info = get_array_value($headers, $column_index);
+        if ($field_name && strpos($field_name, "cf-") === 0 && $value) {
             $custom_field_type = $this->_get_existing_custom_field_type(get_array_value($header_info, "custom_field_id"));
             if ($custom_field_type === "date" && !$this->_check_valid_date($value)) {
                 return app_lang("import_date_error_message");
